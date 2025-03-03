@@ -1,0 +1,117 @@
+﻿@model EMS.Models.Entity.Department
+
+@{
+    ViewBag.Title = "Departman Sil";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-trash me-2"></i>Departman Sil</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @Html.AntiForgeryToken()
+        
+        @if (ViewBag.HasEmployees)
+        {
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Dikkat!</strong> Bu departmanda @ViewBag.EmployeeCount çalışan bulunmaktadır. 
+                Departmanı silmeden önce çalışanları başka bir departmana taşımanız veya silmeniz gerekmektedir.
+            </div>
+        }
+        else 
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Dikkat!</strong> Bu departmanı silmek istediğinizden emin misiniz?
+            </div>
+        }
+
+        <dl class="row">
+            <dt class="col-sm-2">Departman Adı</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
+            
+            <dt class="col-sm-2">Çalışan Sayısı</dt>
+            <dd class="col-sm-10">@ViewBag.EmployeeCount</dd>
+        </dl>
+
+        <div class="mt-3">
+            <button type="button" class="btn btn-danger @(ViewBag.HasEmployees ? "disabled" : "")" 
+                    onclick="deleteDepartment(@Model.Id)" 
+                    @(ViewBag.HasEmployees ? "disabled" : "")>
+                <i class="fas fa-trash me-1"></i>Sil
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Geri Dön
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteDepartment(id) {
+            //Departman içinde çalışan var mı? Kontrolünü sağlıyorum
+            if (@Json.Serialize(ViewBag.HasEmployees)) {
+                return;
+            }
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu işlem geri alınamaz!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+                    
+                    $.ajax({
+                        url: '@Url.Action("DeleteConfirmed")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        data: JSON.stringify(id),
+                        success: function (result) {
+                            if (result.success) {
+                                Swal.fire({
+                                    title: 'Başarılı!',
+                                    text: result.message,
+                                    icon: 'success',
+                                    confirmButtonText: 'Tamam'
+                                }).then(() => {
+                                    window.location.href = '@Url.Action("Index")';
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Hata!',
+                                    text: result.message,
+                                    icon: 'error',
+                                    confirmButtonText: 'Tamam'
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Hata:', error);
+                            console.error('Status:', status);
+                            console.error('Response:', xhr.responseText);
+                            
+                            Swal.fire({
+                                title: 'Hata!',
+                                text: 'İşlem sırasında bir hata oluştu.',
+                                icon: 'error',
+                                confirmButtonText: 'Tamam'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+} 

@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title = "Ana Sayfa";
+}
+
+<div class="jumbotron">
+    <h1>Çalışan Yönetim Sistemi</h1>
+    <p class="lead">Bu sistem ile çalışanlarınızı ve departmanlarınızı kolayca yönetebilirsiniz.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h2>Departmanlar</h2>
+        <p>Departmanlarınızı görüntüleyin, ekleyin, düzenleyin veya silin.</p>
+        <p>@Html.ActionLink("Departmanlara Git", "Index", "Department", null, new { @class = "btn btn-primary" })</p>
+    </div>
+    <div class="col-md-6">
+        <h2>Çalışanlar</h2>
+        <p>Çalışanlarınızı görüntüleyin, ekleyin, düzenleyin veya silin. Çalışanları departmanlara göre filtreleyebilir ve çeşitli kriterlere göre sıralayabilirsiniz.</p>
+        <p>@Html.ActionLink("Çalışanlara Git", "Index", "Employee", null, new { @class = "btn btn-primary" })</p>
+    </div>
+</div> 

@@ -1,0 +1,185 @@
+﻿@model EMS.Models.Entity.Employee
+
+@{
+    ViewBag.Title = "Çalışan Düzenle";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-edit me-2"></i>Çalışan Düzenle</h2>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="card">
+        <div class="card-body">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">Ad Soyad</label>
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.FullName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">E-posta</label>
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">Telefon</label>
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control phone-input", type = "text", maxlength = "11" } })
+                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">Departman</label>
+                <div class="col-md-10">
+                    @Html.DropDownList("DepartmentId", null, new { @class = "form-select" })
+                    @Html.ValidationMessageFor(model => model.DepartmentId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">İşe Başlama Tarihi</label>
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.HireDate, new { htmlAttributes = new { @class = "form-control", type = "date", value = Model.HireDate.ToString("yyyy-MM-dd") } })
+                    @Html.ValidationMessageFor(model => model.HireDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label class="col-md-2 col-form-label">Maaş</label>
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Salary, new { htmlAttributes = new { @class = "form-control", type = "number", step = "0.01", min = "0" } })
+                    @Html.ValidationMessageFor(model => model.Salary, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="offset-md-2 col-md-10">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Kaydet
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var dateInput = $('input[type="date"]');
+            var salaryInput = $('input[type="number"]');
+
+            // Telefon input kontrolü
+            $('.phone-input').on('input', function(e) {
+                var value = $(this).val();
+                // Sadece rakamları tut
+                value = value.replace(/[^0-9]/g, '');
+                // Maksimum 11 karakter
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
+                }
+                $(this).val(value);
+            });
+
+            salaryInput.val(@Model.Salary.ToString().Replace(",","."));
+
+            // Tarihi yyyy-MM-dd formatında ayarla
+            var hireDate = '@Model.HireDate.ToString("yyyy-MM-dd")';
+            dateInput.val(hireDate);
+
+            // Tarihi Türkçe formatta göster
+            dateInput.attr('data-date', '@Model.HireDate.ToString("dd.MM.yyyy")');
+
+            // Tarih değiştiğinde Türkçe formatı güncelle
+            dateInput.on('change', function() {
+                var date = new Date(this.value);
+                var day = String(date.getDate()).padStart(2, '0');
+                var month = String(date.getMonth() + 1).padStart(2, '0');
+                var year = date.getFullYear();
+                this.setAttribute('data-date', day + '.' + month + '.' + year);
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                if (form.valid()) {
+                    $.ajax({
+                        url: form.attr('action'),
+                        type: 'POST',
+                        data: form.serialize(),
+                        success: function () {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: 'Çalışan başarıyla güncellendi.',
+                                icon: 'success',
+                                confirmButtonText: 'Tamam'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '@Url.Action("Index", "Employee")';
+                                }
+                            });
+                        },
+                        error: function () {
+                            Swal.fire({
+                                title: 'Hata!',
+                                text: 'Çalışan güncellenirken bir hata oluştu.',
+                                icon: 'error',
+                                confirmButtonText: 'Tamam'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+    <style>
+        input[type="date"] {
+            position: relative;
+        }
+
+            input[type="date"]:before {
+                content: attr(data-date);
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                padding: 0.375rem 0.75rem;
+                pointer-events: none;
+            }
+
+            input[type="date"]::-webkit-calendar-picker-indicator {
+                position: absolute;
+                right: 0;
+                padding-right: 0.75rem;
+                cursor: pointer;
+            }
+
+            input[type="date"]::-webkit-inner-spin-button,
+            input[type="date"]::-webkit-clear-button {
+                display: none;
+            }
+    </style>
+} 

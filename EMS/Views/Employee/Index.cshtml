@@ -1,0 +1,184 @@
+﻿@model IEnumerable<EMS.Models.Entity.Employee>
+@{
+    ViewBag.Title = "Çalışanlar";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-tie me-2"></i>Çalışanlar</h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Yeni Çalışan
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-filter me-2"></i>Filtrele
+        </h5>
+    </div>
+    <div class="card-body">
+        @using (Html.BeginForm("Index", "Employee", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Departman</label>
+                        @Html.DropDownList("DepartmentId", (SelectList)ViewBag.Departments, "Tümü", new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">İşe Başlama Tarihi (Başlangıç)</label>
+                        @Html.TextBox("HireDateStart", null, new { @class = "form-control", type = "date" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">İşe Başlama Tarihi (Bitiş)</label>
+                        @Html.TextBox("HireDateEnd", null, new { @class = "form-control", type = "date" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Minimum Maaş</label>
+                        @Html.TextBox("MinSalary", null, new { @class = "form-control", type = "number", step = "0.01" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Maksimum Maaş</label>
+                        @Html.TextBox("MaxSalary", null, new { @class = "form-control", type = "number", step = "0.01" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Sıralama</label>
+                        @Html.DropDownList("SortBy",
+                            new SelectList(new[]
+                            {
+                                new { Value = "name", Text = "İsim" },
+                                new { Value = "hiredate", Text = "İşe Başlama Tarihi" },
+                                new { Value = "salary", Text = "Maaş" }
+                            }, "Value", "Text"),
+                            "Seçiniz", new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Sıralama Yönü</label>
+                        @Html.DropDownList("SortDirection",
+                            new SelectList(new[]
+                            {
+                                new { Value = "asc", Text = "Artan" },
+                                new { Value = "desc", Text = "Azalan" }
+                            }, "Value", "Text"),
+                            "Seçiniz", new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary form-control">
+                            <i class="fas fa-search me-1"></i>Filtrele
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="table-responsive">
+    <! İlk defa kullanıyorum :) >
+    @Html.AntiForgeryToken()
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.FullName)</th>
+                <th>@Html.DisplayNameFor(model => model.Email)</th>
+                <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
+                <th>@Html.DisplayNameFor(model => model.Department!.Name)</th>
+                <th>@Html.DisplayNameFor(model => model.HireDate)</th>
+                <th>@Html.DisplayNameFor(model => model.Salary)</th>
+                <th class="text-end">İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.FullName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                    <td>@Html.DisplayFor(modelItem => item.PhoneNumber)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Department!.Name)</td>
+                    <td>@item.HireDate.ToString("dd.MM.yyyy")</td>
+                    <td>@item.Salary.ToString("N2")</td>
+                    <td class="text-end">
+                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit me-1"></i>Düzenle
+                        </a>
+                        <a href="#" class="btn btn-danger btn-sm delete-employee" data-id="@item.Id" data-name="@item.FullName">
+                            <i class="fas fa-trash me-1"></i>Sil
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>Henüz çalışan bulunmamaktadır.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.delete-employee').on('click', function (e) {
+                e.preventDefault();
+                var employeeId = $(this).data('id');
+                var employeeName = $(this).data('name');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: employeeName + " isimli çalışanı silmek istediğinizden emin misiniz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("Delete")/' + employeeId,
+                            type: 'POST',
+                            data: {
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function () {
+                                Swal.fire({
+                                    title: 'Başarılı!',
+                                    text: 'Çalışan başarıyla silindi.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            },
+                            error: function () {
+                                Swal.fire(
+                                    'Hata!',
+                                    'Silme işlemi sırasında bir hata oluştu.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+} 
